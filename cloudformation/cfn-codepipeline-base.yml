@@ -282,7 +282,7 @@ Resources:
                         ChangeSetName: !Sub '${ServiceName}-ChangeSet-Gamma'
                         TemplatePath: BuiltZip::cloudformation/cfn-service.yml
                         Capabilities: CAPABILITY_IAM
-                        ParameterOverrides: '{ "SpotPrice": "0.2", "ASGDesiredCapacity": "2" }'
+                        ParameterOverrides: '{ "SpotPrice": "0.2", "ASGDesiredCapacity": "1" }'
                       InputArtifacts:
                         - Name: BuiltZip
                       RunOrder: 1
@@ -315,7 +315,8 @@ Resources:
                         ChangeSetName: !Sub '${ServiceName}-ChangeSet-Prod'
                         TemplatePath: BuiltZip::cloudformation/cfn-service.yml
                         Capabilities: CAPABILITY_IAM
-                        ParameterOverrides: '{ "ASGDesiredCapacity": "2" }'
+                        #ParameterOverrides: '{ "ASGDesiredCapacity": "2" }'
+                        ParameterOverrides: '{ "SpotPrice": "0.2", "ASGDesiredCapacity": "1" }'
                       InputArtifacts:
                         - Name: BuiltZip
                       RunOrder: 1

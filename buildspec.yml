@@ -7,7 +7,7 @@ phases:
   pre_build:
     commands:
         - echo "pre_build now"
-        - mkdir build cfn
+        #- mkdir build cfn
         #- cp *.html build/
         #- cp cfn-* cfn/
     #   - echo "Installing dependencies and packaging jar file - `pwd`"
