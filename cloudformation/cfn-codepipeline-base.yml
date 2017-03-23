@@ -12,15 +12,16 @@ Parameters:
 
 Resources:
     # Code repository for the service
-    CodeRepository:
-        Type: AWS::CodeCommit::Repository
-        Properties:
-            RepositoryName: !Sub '${ServiceName}_repo'
-            RepositoryDescription: !Sub 'Repository for the ${ServiceName} service'
+    # CodeRepository:
+    #     Type: AWS::CodeCommit::Repository
+    #     Properties:
+    #         RepositoryName: !Sub '${ServiceName}_repo'
+    #         RepositoryDescription: !Sub 'Repository for the ${ServiceName} service'
 
     # CodeBuild project and resources (S3 Bucket for build artifacts, Role, Project)
     BuildArtifactsBucket:
         Type: AWS::S3::Bucket
+        DeletionPolicy: Delete
     CodeBuildServiceRole:
         Type: AWS::IAM::Role
         Properties:
@@ -203,15 +204,19 @@ Resources:
             Stages:
                 - Name: Source
                   Actions:
-                    - Name: CodeCommitRepo
+                    - Name: CodeRepo
                       ActionTypeId:
                         Category: Source
-                        Owner: AWS
-                        Provider: CodeCommit
+                        Owner: ThirdParty
+                        Provider: GitHub
                         Version: 1
                       Configuration:
-                        RepositoryName: !Sub '${ServiceName}_repo'
-                        BranchName: master
+                        Owner: AWS::NoValue
+                        Repo: AWS::NoValue
+                        Branch: AWS::NoValue
+                        OAuthToken: AWS::NoValue
+                        # RepositoryName: !Sub '${ServiceName}_repo'
+                        # BranchName: master
                       OutputArtifacts:
                         - Name: SourceZip
                       RunOrder: 1
