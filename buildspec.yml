@@ -26,5 +26,6 @@ artifacts:
   files:
     - source/*
     - cloudformation/cfn-service.yml
+    - appspec.yml
     # - test-output_sam.yaml
   #discard-paths: yes

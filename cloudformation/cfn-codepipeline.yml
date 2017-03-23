@@ -398,37 +398,37 @@ Resources:
                 #       RunOrder: 2
                 - Name: Beta
                   Actions:
-                    - Name: CreateChangeSet
-                      ActionTypeId:
-                        Category: Deploy
-                        Owner: AWS
-                        Provider: CloudFormation
-                        Version: 1
-                      Configuration:
-                        ActionMode: CHANGE_SET_REPLACE
-                        RoleArn: !GetAtt CloudFormationExecutionRole.Arn
-                        StackName: !Sub '${ServiceName}-Stack-Beta'
-                        ChangeSetName: !Sub '${ServiceName}-ChangeSet-Beta'
-                        TemplatePath: BuiltZip::cloudformation/cfn-service.yml
-                        Capabilities: CAPABILITY_IAM
-                        ParameterOverrides: '{ "SpotPrice": "0.2", "ASGDesiredCapacity": "1" }'
-                      InputArtifacts:
-                        - Name: BuiltZip
-                      RunOrder: 1
-                    - Name: ExecuteChangeSet
-                      ActionTypeId:
-                        Category: Deploy
-                        Owner: AWS
-                        Provider: CloudFormation
-                        Version: 1
-                      Configuration:
-                        ActionMode: CHANGE_SET_EXECUTE
-                        RoleArn: !GetAtt CloudFormationExecutionRole.Arn
-                        StackName: !Sub '${ServiceName}-Stack-Beta'
-                        ChangeSetName: !Sub '${ServiceName}-ChangeSet-Beta'
-                      OutputArtifacts:
-                        - Name: !Sub '${ServiceName}BetaChangeSet'
-                      RunOrder: 2
+                    # - Name: CreateChangeSet
+                    #   ActionTypeId:
+                    #     Category: Deploy
+                    #     Owner: AWS
+                    #     Provider: CloudFormation
+                    #     Version: 1
+                    #   Configuration:
+                    #     ActionMode: CHANGE_SET_REPLACE
+                    #     RoleArn: !GetAtt CloudFormationExecutionRole.Arn
+                    #     StackName: !Sub '${ServiceName}-Stack-Beta'
+                    #     ChangeSetName: !Sub '${ServiceName}-ChangeSet-Beta'
+                    #     TemplatePath: BuiltZip::cloudformation/cfn-service.yml
+                    #     Capabilities: CAPABILITY_IAM
+                    #     ParameterOverrides: '{ "SpotPrice": "0.2", "ASGDesiredCapacity": "1" }'
+                    #   InputArtifacts:
+                    #     - Name: BuiltZip
+                    #   RunOrder: 1
+                    # - Name: ExecuteChangeSet
+                    #   ActionTypeId:
+                    #     Category: Deploy
+                    #     Owner: AWS
+                    #     Provider: CloudFormation
+                    #     Version: 1
+                    #   Configuration:
+                    #     ActionMode: CHANGE_SET_EXECUTE
+                    #     RoleArn: !GetAtt CloudFormationExecutionRole.Arn
+                    #     StackName: !Sub '${ServiceName}-Stack-Beta'
+                    #     ChangeSetName: !Sub '${ServiceName}-ChangeSet-Beta'
+                    #   OutputArtifacts:
+                    #     - Name: !Sub '${ServiceName}BetaChangeSet'
+                    #   RunOrder: 2
                     - Name: DeployBeta
                       ActionTypeId:
                         Category: Deploy
@@ -440,7 +440,7 @@ Resources:
                         DeploymentGroupName: !Ref CodeDeployGroupBeta
                       InputArtifacts:
                         - Name: BuiltZip
-                      RunOrder: 3
+                      RunOrder: 1
                     # - Name: IntegrationTests
                     #   ActionTypeId:
                     #     Category: Invoke
@@ -455,37 +455,37 @@ Resources:
                     #   RunOrder: 3
                 - Name: Gamma
                   Actions:
-                    - Name: CreateChangeSet
-                      ActionTypeId:
-                        Category: Deploy
-                        Owner: AWS
-                        Provider: CloudFormation
-                        Version: 1
-                      Configuration:
-                        ActionMode: CHANGE_SET_REPLACE
-                        RoleArn: !GetAtt CloudFormationExecutionRole.Arn
-                        StackName: !Sub '${ServiceName}-Stack-Gamma'
-                        ChangeSetName: !Sub '${ServiceName}-ChangeSet-Gamma'
-                        TemplatePath: BuiltZip::cloudformation/cfn-service.yml
-                        Capabilities: CAPABILITY_IAM
-                        ParameterOverrides: '{ "SpotPrice": "0.2", "ASGDesiredCapacity": "2" }'
-                      InputArtifacts:
-                        - Name: BuiltZip
-                      RunOrder: 1
-                    - Name: ExecuteChangeSet
-                      ActionTypeId:
-                        Category: Deploy
-                        Owner: AWS
-                        Provider: CloudFormation
-                        Version: 1
-                      Configuration:
-                        ActionMode: CHANGE_SET_EXECUTE
-                        RoleArn: !GetAtt CloudFormationExecutionRole.Arn
-                        StackName: !Sub '${ServiceName}-Stack-Gamma'
-                        ChangeSetName: !Sub '${ServiceName}-ChangeSet-Gamma'
-                      OutputArtifacts:
-                        - Name: !Sub '${ServiceName}GammaChangeSet'
-                      RunOrder: 2
+                    # - Name: CreateChangeSet
+                    #   ActionTypeId:
+                    #     Category: Deploy
+                    #     Owner: AWS
+                    #     Provider: CloudFormation
+                    #     Version: 1
+                    #   Configuration:
+                    #     ActionMode: CHANGE_SET_REPLACE
+                    #     RoleArn: !GetAtt CloudFormationExecutionRole.Arn
+                    #     StackName: !Sub '${ServiceName}-Stack-Gamma'
+                    #     ChangeSetName: !Sub '${ServiceName}-ChangeSet-Gamma'
+                    #     TemplatePath: BuiltZip::cloudformation/cfn-service.yml
+                    #     Capabilities: CAPABILITY_IAM
+                    #     ParameterOverrides: '{ "SpotPrice": "0.2", "ASGDesiredCapacity": "2" }'
+                    #   InputArtifacts:
+                    #     - Name: BuiltZip
+                    #   RunOrder: 1
+                    # - Name: ExecuteChangeSet
+                    #   ActionTypeId:
+                    #     Category: Deploy
+                    #     Owner: AWS
+                    #     Provider: CloudFormation
+                    #     Version: 1
+                    #   Configuration:
+                    #     ActionMode: CHANGE_SET_EXECUTE
+                    #     RoleArn: !GetAtt CloudFormationExecutionRole.Arn
+                    #     StackName: !Sub '${ServiceName}-Stack-Gamma'
+                    #     ChangeSetName: !Sub '${ServiceName}-ChangeSet-Gamma'
+                    #   OutputArtifacts:
+                    #     - Name: !Sub '${ServiceName}GammaChangeSet'
+                    #   RunOrder: 2
                     - Name: DeployGamma
                       ActionTypeId:
                         Category: Deploy
@@ -497,7 +497,7 @@ Resources:
                         DeploymentGroupName: !Ref CodeDeployGroupGamma
                       InputArtifacts:
                         - Name: BuiltZip
-                      RunOrder: 3
+                      RunOrder: 1
                     # - Name: IntegrationTests
                     #   ActionTypeId:
                     #     Category: Invoke
@@ -519,37 +519,37 @@ Resources:
                         Provider: Manual
                         Version: 1
                       RunOrder: 1
-                    - Name: CreateChangeSet
-                      ActionTypeId:
-                        Category: Deploy
-                        Owner: AWS
-                        Provider: CloudFormation
-                        Version: 1
-                      Configuration:
-                        ActionMode: CHANGE_SET_REPLACE
-                        RoleArn: !GetAtt CloudFormationExecutionRole.Arn
-                        StackName: !Sub '${ServiceName}-Stack-Prod'
-                        ChangeSetName: !Sub '${ServiceName}-ChangeSet-Prod'
-                        TemplatePath: BuiltZip::cloudformation/cfn-service.yml
-                        Capabilities: CAPABILITY_IAM
-                        ParameterOverrides: '{ "ASGDesiredCapacity": "2" }'
-                      InputArtifacts:
-                        - Name: BuiltZip
-                      RunOrder: 2
-                    - Name: ExecuteChangeSet
-                      ActionTypeId:
-                        Category: Deploy
-                        Owner: AWS
-                        Provider: CloudFormation
-                        Version: 1
-                      Configuration:
-                        ActionMode: CHANGE_SET_EXECUTE
-                        RoleArn: !GetAtt CloudFormationExecutionRole.Arn
-                        StackName: !Sub '${ServiceName}-Stack-Prod'
-                        ChangeSetName: !Sub '${ServiceName}-ChangeSet-Prod'
-                      OutputArtifacts:
-                        - Name: !Sub '${ServiceName}ProdChangeSet'
-                      RunOrder: 3
+                    # - Name: CreateChangeSet
+                    #   ActionTypeId:
+                    #     Category: Deploy
+                    #     Owner: AWS
+                    #     Provider: CloudFormation
+                    #     Version: 1
+                    #   Configuration:
+                    #     ActionMode: CHANGE_SET_REPLACE
+                    #     RoleArn: !GetAtt CloudFormationExecutionRole.Arn
+                    #     StackName: !Sub '${ServiceName}-Stack-Prod'
+                    #     ChangeSetName: !Sub '${ServiceName}-ChangeSet-Prod'
+                    #     TemplatePath: BuiltZip::cloudformation/cfn-service.yml
+                    #     Capabilities: CAPABILITY_IAM
+                    #     ParameterOverrides: '{ "ASGDesiredCapacity": "2" }'
+                    #   InputArtifacts:
+                    #     - Name: BuiltZip
+                    #   RunOrder: 2
+                    # - Name: ExecuteChangeSet
+                    #   ActionTypeId:
+                    #     Category: Deploy
+                    #     Owner: AWS
+                    #     Provider: CloudFormation
+                    #     Version: 1
+                    #   Configuration:
+                    #     ActionMode: CHANGE_SET_EXECUTE
+                    #     RoleArn: !GetAtt CloudFormationExecutionRole.Arn
+                    #     StackName: !Sub '${ServiceName}-Stack-Prod'
+                    #     ChangeSetName: !Sub '${ServiceName}-ChangeSet-Prod'
+                    #   OutputArtifacts:
+                    #     - Name: !Sub '${ServiceName}ProdChangeSet'
+                    #   RunOrder: 3
                     - Name: DeployProd
                       ActionTypeId:
                         Category: Deploy
@@ -561,4 +561,4 @@ Resources:
                         DeploymentGroupName: !Ref CodeDeployGroupProd
                       InputArtifacts:
                         - Name: BuiltZip
-                      RunOrder: 4
+                      RunOrder: 2
