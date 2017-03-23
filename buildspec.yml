@@ -25,6 +25,7 @@ phases:
 artifacts:
   files:
     - source/*
+    - Scripts/*
     - cloudformation/cfn-service.yml
     - appspec.yml
     # - test-output_sam.yaml
