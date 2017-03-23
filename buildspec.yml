@@ -9,7 +9,7 @@ phases:
         - echo "pre_build now"
         - mkdir build cfn
         #- cp *.html build/
-        - cp cfn-* cfn/
+        #- cp cfn-* cfn/
     #   - echo "Installing dependencies and packaging jar file - `pwd`"
     #   - cd orders-service && mvn package
     #   - echo "Jar file package `date`"
@@ -25,6 +25,6 @@ phases:
 artifacts:
   files:
     - source/*
-    - cfn/cfn-service.yml
+    - cloudformation/cfn-service.yml
     # - test-output_sam.yaml
   #discard-paths: yes

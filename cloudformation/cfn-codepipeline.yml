@@ -21,11 +21,11 @@ Conditions:
 
 Resources:
     # Code repository for the service
-    CodeRepository:
-        Type: AWS::CodeCommit::Repository
-        Properties:
-            RepositoryName: !Sub '${ServiceName}_repo'
-            RepositoryDescription: !Sub 'Repository for the ${ServiceName} service'
+    # CodeRepository:
+    #     Type: AWS::CodeCommit::Repository
+    #     Properties:
+    #         RepositoryName: !Sub '${ServiceName}_repo'
+    #         RepositoryDescription: !Sub 'Repository for the ${ServiceName} service'
 
     # CodeBuild project and resources (S3 Bucket for build artifacts, Role, Project)
     BuildArtifactsBucket:
@@ -331,15 +331,19 @@ Resources:
             Stages:
                 - Name: Source
                   Actions:
-                    - Name: CodeCommitRepo
+                    - Name: CodeRepo
                       ActionTypeId:
                         Category: Source
-                        Owner: AWS
-                        Provider: CodeCommit
+                        Owner: ThirdParty
+                        Provider: GitHub
                         Version: 1
                       Configuration:
-                        RepositoryName: !Sub '${ServiceName}_repo'
-                        BranchName: master
+                        Owner: AWS::NoValue
+                        Repo: AWS::NoValue
+                        Branch: AWS::NoValue
+                        OAuthToken: AWS::NoValue
+                        # RepositoryName: !Sub '${ServiceName}_repo'
+                        # BranchName: master
                       OutputArtifacts:
                         - Name: SourceZip
                       RunOrder: 1
@@ -405,7 +409,7 @@ Resources:
                         RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                         StackName: !Sub '${ServiceName}-Stack-Beta'
                         ChangeSetName: !Sub '${ServiceName}-ChangeSet-Beta'
-                        TemplatePath: BuiltZip::cfn/cfn-service.yml
+                        TemplatePath: BuiltZip::cloudformation/cfn-service.yml
                         Capabilities: CAPABILITY_IAM
                         ParameterOverrides: '{ "SpotPrice": "0.2", "ASGDesiredCapacity": "1" }'
                       InputArtifacts:
@@ -462,7 +466,7 @@ Resources:
                         RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                         StackName: !Sub '${ServiceName}-Stack-Gamma'
                         ChangeSetName: !Sub '${ServiceName}-ChangeSet-Gamma'
-                        TemplatePath: BuiltZip::cfn/cfn-service.yml
+                        TemplatePath: BuiltZip::cloudformation/cfn-service.yml
                         Capabilities: CAPABILITY_IAM
                         ParameterOverrides: '{ "SpotPrice": "0.2", "ASGDesiredCapacity": "2" }'
                       InputArtifacts:
@@ -526,7 +530,7 @@ Resources:
                         RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                         StackName: !Sub '${ServiceName}-Stack-Prod'
                         ChangeSetName: !Sub '${ServiceName}-ChangeSet-Prod'
-                        TemplatePath: BuiltZip::cfn/cfn-service.yml
+                        TemplatePath: BuiltZip::cloudformation/cfn-service.yml
                         Capabilities: CAPABILITY_IAM
                         ParameterOverrides: '{ "ASGDesiredCapacity": "2" }'
                       InputArtifacts:

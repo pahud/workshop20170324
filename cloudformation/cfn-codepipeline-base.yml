@@ -247,7 +247,7 @@ Resources:
                         RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                         StackName: !Sub '${ServiceName}-Stack-Beta'
                         ChangeSetName: !Sub '${ServiceName}-ChangeSet-Beta'
-                        TemplatePath: BuiltZip::cfn/cfn-service.yml
+                        TemplatePath: BuiltZip::cloudformation/cfn-service.yml
                         Capabilities: CAPABILITY_IAM
                         ParameterOverrides: '{ "SpotPrice": "0.2", "ASGDesiredCapacity": "1" }'
                       InputArtifacts:
@@ -280,7 +280,7 @@ Resources:
                         RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                         StackName: !Sub '${ServiceName}-Stack-Gamma'
                         ChangeSetName: !Sub '${ServiceName}-ChangeSet-Gamma'
-                        TemplatePath: BuiltZip::cfn/cfn-service.yml
+                        TemplatePath: BuiltZip::cloudformation/cfn-service.yml
                         Capabilities: CAPABILITY_IAM
                         ParameterOverrides: '{ "SpotPrice": "0.2", "ASGDesiredCapacity": "2" }'
                       InputArtifacts:
@@ -313,7 +313,7 @@ Resources:
                         RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                         StackName: !Sub '${ServiceName}-Stack-Prod'
                         ChangeSetName: !Sub '${ServiceName}-ChangeSet-Prod'
-                        TemplatePath: BuiltZip::cfn/cfn-service.yml
+                        TemplatePath: BuiltZip::cloudformation/cfn-service.yml
                         Capabilities: CAPABILITY_IAM
                         ParameterOverrides: '{ "ASGDesiredCapacity": "2" }'
                       InputArtifacts:
