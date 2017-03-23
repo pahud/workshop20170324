@@ -1,0 +1,597 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description:
+  generic cloudformation template for EC2 and ELB/ALB
+
+Mappings:
+  VpcCidrs:
+      default:
+        vpc: 10.0.0.0/16
+        pubzonea: 10.0.1.0/24
+        pubzoneb: 10.0.2.0/24
+        # ec2zonea: 10.0.11.0/24
+        # ec2zoneb: 10.0.12.0/24
+  AmiId:
+    default:
+      balancer: ami-f173cc91
+      nginx:  ami-f173cc91
+  InstanceType:
+    default:
+      balancer: m3.medium
+      nginx: m3.medium
+
+Parameters:
+  SshKeyName:
+    Type: String
+    Description: Optional - Name of an existing EC2 KeyPair to enable SSH access to the ECS instances. Set to 'NoValue' if no SSH key is required.
+    Default: NoValue
+  SpotPrice:
+    Type: Number
+    Description: spot price for spot instances
+    Default: 0
+  ASGDesiredCapacity:
+    Type: Number
+    Description: instance count under AutoScalingGroup
+    Default: 1
+  UseALB:
+    Type: String
+    AllowedValues: ["yes", "no"]
+    Description: select yes if you'd like to use ALB
+    Default: "no"
+  WithCodeDeploy:
+    Type: String
+    AllowedValues: ["yes", "no"]
+    Description: create CodeDeploy actions in the CodePipeline
+    Default: "no"
+
+
+
+Conditions:
+  HasSshKeyName: !Not [ !Equals [!Ref SshKeyName, NoValue] ]
+  SpotOnlyCond: !Not [ !Equals [ !Ref SpotPrice, 0 ] ]
+  UseALBCond: !Equals [ !Ref UseALB, "yes" ] 
+  UseELBCond: !Equals [ !Ref UseALB, "no" ] 
+  WithCodeDeploy: !Equals [ !Ref WithCodeDeploy, "yes" ] 
+
+
+Resources:
+#######################
+#   VPC / infra
+#######################
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      Tags: 
+        -
+          Key: Name
+          Value: cfn-vpc
+      CidrBlock: !FindInMap [ VpcCidrs, default, vpc ]
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+
+  VPCGWAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref Vpc
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    #Properties:
+
+  PublicRT:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        -
+          Key: Name
+          Value: public-rt
+      VpcId: !Ref Vpc
+
+  PublicRouteViaIgw:
+    Type: AWS::EC2::Route
+    Properties: 
+      RouteTableId: !Ref PublicRT
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+
+  # PrivateRTZoneA:
+  #   Type: AWS::EC2::RouteTable
+  #   Properties:
+  #     Tags:
+  #       -
+  #         Key: Name
+  #         Value: private-rt-zone-A
+  #     VpcId: !Ref Vpc
+      
+  # RouteViaNATGWZoneA:
+  #   Type: AWS::EC2::Route
+  #   Properties: 
+  #     RouteTableId: !Ref PrivateRTZoneA
+  #     DestinationCidrBlock: 0.0.0.0/0
+  #     GatewayId: !Ref PrivateRTZoneA
+
+  # PrivateRTZoneB:
+  #   Type: AWS::EC2::RouteTable
+  #   Properties:
+  #     Tags:
+  #       -
+  #         Key: Name
+  #         Value: private-rt-zone-B
+  #     VpcId: !Ref Vpc
+      
+  # RouteViaNATGWZoneB:
+  #   Type: AWS::EC2::Route
+  #   Properties: 
+  #     RouteTableId: !Ref PrivateRTZoneB
+  #     DestinationCidrBlock: 0.0.0.0/0
+  #     GatewayId: !Ref PrivateRTZoneB
+
+
+  PublicZoneA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      Tags:
+        -
+          Key: Name
+          Value: pub-zone-a
+      VpcId: !Ref Vpc
+      CidrBlock: !FindInMap [ VpcCidrs, default, pubzonea ]
+      AvailabilityZone: 
+        Fn::Select:
+          - 0 
+          - Fn::GetAZs: ""
+
+  PublicZoneB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      Tags:
+        -
+          Key: Name
+          Value: pub-zone-b
+      VpcId: !Ref Vpc
+      CidrBlock: !FindInMap [ VpcCidrs, default, pubzoneb ]
+      AvailabilityZone: 
+        Fn::Select:
+          - 1 
+          - Fn::GetAZs: ""
+
+  # EC2ZoneA:
+  #   Type: AWS::EC2::Subnet
+  #   Properties:
+  #     Tags:
+  #       -
+  #         Key: Name
+  #         Value: ec2-zone-a
+  #     VpcId: !Ref Vpc
+  #     CidrBlock: !FindInMap [ VpcCidrs, default, ec2zonea ]
+  #     AvailabilityZone: 
+  #       Fn::Select:
+  #         - 0 
+  #         - Fn::GetAZs: ""
+
+  # EC2ZoneB:
+  #   Type: AWS::EC2::Subnet
+  #   Properties:
+  #     Tags:
+  #       -
+  #         Key: Name
+  #         Value: ec2-zone-b
+  #     VpcId: !Ref Vpc
+  #     CidrBlock: !FindInMap [ VpcCidrs, default, ec2zoneb ]
+  #     AvailabilityZone: 
+  #       Fn::Select:
+  #         - 1 
+  #         - Fn::GetAZs: ""
+
+
+
+  # NATGWZoneA:
+  #   DependsOn: VPCGWAttach
+  #   Type: AWS::EC2::NatGateway
+  #   Properties:
+  #     AllocationId:
+  #       Fn::GetAtt:
+  #       - EIPZoneA
+  #       - AllocationId
+  #     SubnetId:
+  #       Ref: PublicZoneA
+  # EIPZoneA:
+  #   Type: AWS::EC2::EIP
+  #   Properties:
+  #     Domain: vpc
+  # RouteViaNATGWZoneA:
+  #   Type: AWS::EC2::Route
+  #   Properties:
+  #     RouteTableId:
+  #       Ref: PrivateRTZoneA
+  #     DestinationCidrBlock: 0.0.0.0/0
+  #     NatGatewayId:
+  #       Ref: NATGWZoneA
+
+  # NATGWZoneB:
+  #   DependsOn: VPCGWAttach
+  #   Type: AWS::EC2::NatGateway
+  #   Properties:
+  #     AllocationId:
+  #       Fn::GetAtt:
+  #       - EIPZoneB
+  #       - AllocationId
+  #     SubnetId:
+  #       Ref: PublicZoneB
+  # EIPZoneB:
+  #   Type: AWS::EC2::EIP
+  #   Properties:
+  #     Domain: vpc
+  # RouteViaNATGWZoneB:
+  #   Type: AWS::EC2::Route
+  #   Properties:
+  #     RouteTableId:
+  #       Ref: PrivateRTZoneB
+  #     DestinationCidrBlock: 0.0.0.0/0
+  #     NatGatewayId:
+  #       Ref: NATGWZoneB
+
+
+  PublicZoneARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRT
+      SubnetId: !Ref PublicZoneA
+
+  PublicZoneBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRT
+      SubnetId: !Ref PublicZoneB
+
+  # EC2ZoneARouteTableAssociation:
+  #   Type: AWS::EC2::SubnetRouteTableAssociation
+  #   Properties:
+  #     RouteTableId: !Ref PrivateRTZoneA
+  #     SubnetId: !Ref EC2ZoneA
+
+  # EC2ZoneBRouteTableAssociation:
+  #   Type: AWS::EC2::SubnetRouteTableAssociation
+  #   Properties:
+  #     RouteTableId: !Ref PrivateRTZoneB
+  #     SubnetId: !Ref EC2ZoneB
+
+
+#######################
+#  ASG / EC2 / ELB / ALB
+#######################
+
+  SgLB:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "sg for LoadBalancer"
+      #VpcId: !ImportValue {"Fn::Sub" : "${VpcStackName}-VpcId"}
+      VpcId: !Ref Vpc
+  SgEC2:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "sg for ec2"
+      #VpcId: !ImportValue {"Fn::Sub" : "${VpcStackName}-VpcId"}
+      VpcId: !Ref Vpc
+
+  ingress1:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref SgLB
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: 0.0.0.0/0
+
+  ingress2:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref SgLB
+      IpProtocol: tcp
+      FromPort: 22
+      ToPort: 22
+      CidrIp: 0.0.0.0/0
+
+  ingress3:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref SgEC2
+      SourceSecurityGroupId: !Ref SgLB
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      #CidrIp: 10.0.0.0/16
+
+  ALBListener:
+    Condition: UseALBCond
+    Type : AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        -
+          Type: forward
+          TargetGroupArn: !Ref publicALBTargetGroup
+      LoadBalancerArn: !Ref publicALB
+      Port: 80
+      Protocol: HTTP
+
+  publicALB:
+    Condition: UseALBCond
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties:
+      #LoadBalancerAttributes:
+      #  - LoadBalancerAttributes
+      Name: !Sub
+        - ${StackName}-alb
+        -
+          StackName: !Ref AWS::StackName
+      Scheme: internet-facing
+      SecurityGroups:
+        - !Ref SgLB
+      Subnets:
+        # - !ImportValue {"Fn::Sub" : "${StackName}-PublicZoneA"}
+        # - !ImportValue {"Fn::Sub" : "${StackName}-PublicZoneB"}
+        - !Ref PublicZoneA
+        - !Ref PublicZoneB
+      Tags:
+        -
+          Key: Name
+          Value: !Sub
+            - ${StackName}-alb
+            - StackName: !Ref AWS::StackName
+
+
+  publicALBTargetGroup:
+    Condition: UseALBCond
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /index.html
+      HealthCheckPort: 80
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 2
+      Matcher:
+        HttpCode: '200'
+      Name: !Sub
+        - ${StackName}-http-tg
+        - StackName: !Ref AWS::StackName
+      Port: 80
+      Protocol: HTTP
+      Tags:
+        - 
+          Key: Name
+          Value: alb-tg        
+      UnhealthyThresholdCount: 3
+      #VpcId: !ImportValue {"Fn::Sub" : "${StackName}-VpcId"}
+      VpcId: !Ref Vpc
+
+
+  publicELB:
+    Condition: UseELBCond
+    Type: "AWS::ElasticLoadBalancing::LoadBalancer"
+    Properties:
+      HealthCheck:
+        HealthyThreshold: 2
+        Interval: 30
+        Target: HTTP:80/index.html
+        Timeout: 10
+        UnhealthyThreshold: 2
+      Listeners: 
+        -
+          InstancePort: 80
+          InstanceProtocol: HTTP
+          LoadBalancerPort: 80
+          #PolicyNames:
+          #  - String
+          Protocol: HTTP
+          #SSLCertificateId: String
+      LoadBalancerName: !Sub
+        - ${StackName}-elb
+        - StackName: !Ref AWS::StackName
+      Tags:
+        - 
+          Key: Name
+          Value: Elb-tg        
+      #VpcId: !ImportValue {"Fn::Sub" : "${StackName}-VpcId"}
+      Subnets: [ !Ref PublicZoneA, !Ref PublicZoneB ]
+      SecurityGroups: 
+        - !Ref SgLB
+ 
+  EC2InstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties: 
+      Path: /
+      Roles:
+        - CodeDeployRoleForEC2
+
+  ASGLC:
+    Type: "AWS::AutoScaling::LaunchConfiguration"
+    Properties:
+      AssociatePublicIpAddress: true
+      # BlockDeviceMappings:
+      #   - BlockDeviceMapping
+      # ClassicLinkVPCId: String
+      # ClassicLinkVPCSecurityGroups:
+      #   - String
+      # EbsOptimized: Boolean
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      ImageId:
+        !FindInMap
+          - AmiId
+          - default
+          - nginx
+      #InstanceId: String
+      InstanceMonitoring: true
+      InstanceType:
+        !FindInMap
+          - InstanceType
+          - default
+          - nginx
+      #KernelId: String
+      KeyName:
+        !If 
+          - HasSshKeyName
+          - !Ref SshKeyName
+          - !Ref AWS::NoValue
+      #PlacementTenancy: String
+      #RamDiskId: String
+      SecurityGroups:
+        - !Ref SgEC2
+      SpotPrice: 
+        !If 
+          - SpotOnlyCond
+          - !Ref SpotPrice
+          - !Ref AWS::NoValue
+      UserData: 
+        "Fn::Base64": |
+            #!/bin/bash -xe
+            yum update -y
+            yum install -y nginx php70-fpm
+            chkconfig nginx on
+            IID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+            AZ=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
+            REGION=${AZ%%?}
+            cat<<EOF > /usr/share/nginx/html/index.html
+            <h1>I am ${IID} in ${AZ}</h1>
+            EOF
+            for i in php-fpm nginx; do service $i start; done
+            #service nginx start
+            wget https://aws-codedeploy-${REGION}.s3.amazonaws.com/latest/install
+            chmod +x install
+            ./install auto
+
+  ASGDefault:
+    Type: "AWS::AutoScaling::AutoScalingGroup"
+    Properties:
+      AvailabilityZones:
+        -
+          Fn::Select:
+            - 0 
+            - Fn::GetAZs: ""
+        -
+          Fn::Select:
+            - 1
+            - Fn::GetAZs: ""
+      #Cooldown: String
+      DesiredCapacity: !Ref ASGDesiredCapacity
+      HealthCheckGracePeriod: 60
+      # HealthCheckType: String
+      #InstanceId: String
+      LaunchConfigurationName: !Ref ASGLC
+      #LoadBalancerNames:
+      #  - 
+      MaxSize: 10
+      # MetricsCollection:
+      #   - MetricsCollection
+      MinSize: 0
+      # NotificationConfigurations:
+      #   - NotificationConfigurations
+      # PlacementGroup: String
+      Tags:
+        - 
+          Key: Name
+          #Value: {"Fn::Sub" : "${StackName}-cfn-nginx"}
+          Value: !Sub
+            - "${StackName}-cfn-nginx"
+            - StackName: !Ref AWS::StackName
+          PropagateAtLaunch: true
+      TargetGroupARNs:
+        !If 
+          - UseALBCond
+          - !Ref publicALBTargetGroup
+          - !Ref AWS::NoValue
+      LoadBalancerNames:
+        !If 
+          - UseELBCond
+          - [ !Ref publicELB ]
+          - !Ref AWS::NoValue        
+      #TerminationPolicies:
+      #  - String
+      VPCZoneIdentifier:
+        - !Ref PublicZoneA
+        - !Ref PublicZoneB
+
+
+
+Outputs:
+  StackName:
+    Value:
+      !Ref AWS::StackName
+  AZs:
+    Value:
+      Fn::Join:
+        - ""
+        - !GetAZs ""
+  VpcId:
+    Value:
+      !Ref Vpc
+    Description: The VPC ID of the created VPC  
+    Export:
+      Name: 
+        "Fn::Sub": 
+          - ${StackName}-VpcId
+          - StackName: !Ref AWS::StackName
+
+  PublicZoneA:
+    Value:
+      !Ref PublicZoneA
+    Description: Public Zone A
+    Export:
+      Name: 
+        "Fn::Sub": 
+          - ${StackName}-PublicZoneA
+          - StackName: !Ref AWS::StackName
+  PublicZoneB:
+    Value:
+      !Ref PublicZoneB
+    Description: Public Zone B
+    Export:
+      Name: 
+        "Fn::Sub": 
+          - ${StackName}-PublicZoneB
+          - StackName: !Ref AWS::StackName
+
+  # EC2ZoneA:
+  #   Value:
+  #     !Ref EC2ZoneA
+  #   Description: EC2 Zone A
+  #   Export:
+  #     Name: 
+  #       "Fn::Sub": 
+  #         - ${StackName}-EC2ZoneA
+  #         - StackName: !Ref AWS::StackName
+  # EC2ZoneB:
+  #   Value:
+  #     !Ref EC2ZoneB
+  #   Description: EC2 Zone B
+  #   Export:
+  #     Name: 
+  #       "Fn::Sub": 
+  #         - ${StackName}-EC2ZoneB
+  #         - StackName: !Ref AWS::StackName
+  # LoadBalancerURL:
+  #   Value: 
+  #     !Join
+  #       - ""
+  #       -
+  #         - http://
+  #         - !GetAtt publicALB.DNSName
+  #         - /demo.html
+  #   Export:
+  #     Name: 
+  #       !Sub
+  #         - ${StackName}-LoadBalancerURL
+  #         - 
+  #           StackName: !Ref AWS::StackName
+  # LoadBalancerURL:
+  #   Value:
+  #     !Join
+  #       - ""
+  #       -
+  #         - http://
+  #         - !GetAtt NginxLB.PublicDnsName
+  #         - /demo.html
+  #   Export:
+  #     Name: LoadBalancerURL
