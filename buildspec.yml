@@ -9,12 +9,6 @@ phases:
       - echo "pre_build now"
       - echo "CODEBUILD_SOURCE_REPO_URL: ${CODEBUILD_SOURCE_REPO_URL}"
       - echo "CODEBUILD_SOURCE_VERSION: ${CODEBUILD_SOURCE_VERSION}"
-      #- mkdir build cfn
-      #- cp *.html build/
-      #- cp cfn-* cfn/
-      #   - echo "Installing dependencies and packaging jar file - `pwd`"
-      #   - cd orders-service && mvn package
-      #   - echo "Jar file package `date`"
   build:
     commands:
       - echo "Starting build `date` in `pwd`"
@@ -23,8 +17,7 @@ phases:
   post_build:
     commands:
       - echo "build completed on `date`"
-      - aws sns publish --topic-arn $SNS_TOPIC_ARN --message "build completed on `date` CODEBUILD_SOURCE_REPO_URL: ${CODEBUILD_SOURCE_REPO_URL} and CODEBUILD_SOURCE_VERSION: ${CODEBUILD_SOURCE_VERSION}"
-
+      #- aws sns publish --topic-arn $SNS_TOPIC_ARN --message "build completed on `date` CODEBUILD_SOURCE_REPO_URL: ${CODEBUILD_SOURCE_REPO_URL} and CODEBUILD_SOURCE_VERSION: ${CODEBUILD_SOURCE_VERSION}"
 artifacts:
   files:
     - source/*
