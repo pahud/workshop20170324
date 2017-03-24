@@ -20,6 +20,12 @@ Conditions:
 
 
 Resources:
+    SNSTopic:
+      Type: "AWS::SNS::Topic"
+      Properties: 
+        DisplayName: !Sub '${ServiceName} Notify'
+        TopicName: !Sub '${ServiceName}_Notify'
+
     # Code repository for the service
     # CodeRepository:
     #     Type: AWS::CodeCommit::Repository
@@ -77,6 +83,8 @@ Resources:
                 EnvironmentVariables:
                   - Name: BUILD_OUTPUT_BUCKET
                     Value: !Ref BuildArtifactsBucket
+                  - Name: SNS_TOPIC_ARN
+                    Value: !Ref SNSTopic
             ServiceRole: !GetAtt CodeBuildServiceRole.Arn
             Source: 
                 Type: CODEPIPELINE

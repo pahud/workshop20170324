@@ -8,7 +8,7 @@ phases:
     commands:
       - echo "pre_build now"
       - echo "CODEBUILD_SOURCE_REPO_URL: ${CODEBUILD_SOURCE_REPO_URL}"
-      - echo "CODEBUILD_SOURCE_VERSION: ${CODEBUILD_SOURCE_VERSION}
+      - echo "CODEBUILD_SOURCE_VERSION: ${CODEBUILD_SOURCE_VERSION}"
       #- mkdir build cfn
       #- cp *.html build/
       #- cp cfn-* cfn/
@@ -23,6 +23,7 @@ phases:
   post_build:
     commands:
       - echo "build completed on `date`"
+      - aws sns publish --topic-arn $SNS_TOPIC_ARN --message "build completed on `date` CODEBUILD_SOURCE_REPO_URL: ${CODEBUILD_SOURCE_REPO_URL} and CODEBUILD_SOURCE_VERSION: ${CODEBUILD_SOURCE_VERSION}"
 
 artifacts:
   files:
