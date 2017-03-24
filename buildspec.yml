@@ -6,15 +6,15 @@ phases:
       - echo "nothing to do in install"
   pre_build:
     commands:
-        - echo "pre_build now"
-	- echo "CODEBUILD_SOURCE_REPO_URL: ${CODEBUILD_SOURCE_REPO_URL}"
-	- echo "CODEBUILD_SOURCE_VERSION: ${CODEBUILD_SOURCE_VERSION}
-        #- mkdir build cfn
-        #- cp *.html build/
-        #- cp cfn-* cfn/
-    	#   - echo "Installing dependencies and packaging jar file - `pwd`"
-    	#   - cd orders-service && mvn package
-    	#   - echo "Jar file package `date`"
+      - echo "pre_build now"
+      - echo "CODEBUILD_SOURCE_REPO_URL: ${CODEBUILD_SOURCE_REPO_URL}"
+      - echo "CODEBUILD_SOURCE_VERSION: ${CODEBUILD_SOURCE_VERSION}
+      #- mkdir build cfn
+      #- cp *.html build/
+      #- cp cfn-* cfn/
+      #   - echo "Installing dependencies and packaging jar file - `pwd`"
+      #   - cd orders-service && mvn package
+      #   - echo "Jar file package `date`"
   build:
     commands:
       - echo "Starting build `date` in `pwd`"
