@@ -56,6 +56,26 @@ Conditions:
 
 Resources:
 #######################
+#   IAM
+#######################
+  CodeDeployRoleForEC2:
+    Type: AWS::IAM::Role
+    Properties:
+        AssumeRolePolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action: 
+                  - 'sts:AssumeRole'
+                Effect: Allow
+                Principal:
+                  Service:
+                    - ec2.amazonaws.com
+        Path: /
+        ManagedPolicyArns:
+            - 'arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforAWSCodeDeploy'
+
+
+#######################
 #   VPC / infra
 #######################
   Vpc:
@@ -404,7 +424,7 @@ Resources:
     Properties: 
       Path: /
       Roles:
-        - CodeDeployRoleForEC2
+        - !Ref CodeDeployRoleForEC2
 
   ASGLC:
     Type: "AWS::AutoScaling::LaunchConfiguration"
