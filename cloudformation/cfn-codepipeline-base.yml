@@ -220,20 +220,20 @@ Resources:
                       OutputArtifacts:
                         - Name: SourceZip
                       RunOrder: 1
-                - Name: Build
-                  Actions:
-                    - Name: CodeBuild
-                      ActionTypeId:
-                        Category: Build
-                        Owner: AWS
-                        Provider: CodeBuild
-                        Version: 1
-                      Configuration:
-                        ProjectName: !Ref CodeBuildProject
-                      InputArtifacts:
-                        - Name: SourceZip
-                      OutputArtifacts:
-                        - Name: BuiltZip
+                # - Name: Build
+                #   Actions:
+                #     - Name: CodeBuild
+                #       ActionTypeId:
+                #         Category: Build
+                #         Owner: AWS
+                #         Provider: CodeBuild
+                #         Version: 1
+                #       Configuration:
+                #         ProjectName: !Ref CodeBuildProject
+                #       InputArtifacts:
+                #         - Name: SourceZip
+                #       OutputArtifacts:
+                #         - Name: BuiltZip
                 - Name: Beta
                   Actions:
                     - Name: CreateChangeSet
@@ -247,11 +247,11 @@ Resources:
                         RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                         StackName: !Sub '${ServiceName}-Stack-Beta'
                         ChangeSetName: !Sub '${ServiceName}-ChangeSet-Beta'
-                        TemplatePath: BuiltZip::cloudformation/cfn-service.yml
+                        TemplatePath: SourceZip::cloudformation/cfn-service.yml
                         Capabilities: CAPABILITY_IAM
                         ParameterOverrides: '{ "SpotPrice": "0.2", "ASGDesiredCapacity": "1" }'
                       InputArtifacts:
-                        - Name: BuiltZip
+                        - Name: SourceZip
                       RunOrder: 1
                     - Name: ExecuteChangeSet
                       ActionTypeId:
@@ -280,11 +280,11 @@ Resources:
                         RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                         StackName: !Sub '${ServiceName}-Stack-Gamma'
                         ChangeSetName: !Sub '${ServiceName}-ChangeSet-Gamma'
-                        TemplatePath: BuiltZip::cloudformation/cfn-service.yml
+                        TemplatePath: SourceZip::cloudformation/cfn-service.yml
                         Capabilities: CAPABILITY_IAM
                         ParameterOverrides: '{ "SpotPrice": "0.2", "ASGDesiredCapacity": "1" }'
                       InputArtifacts:
-                        - Name: BuiltZip
+                        - Name: SourceZip
                       RunOrder: 1
                     - Name: ExecuteChangeSet
                       ActionTypeId:
@@ -313,12 +313,12 @@ Resources:
                         RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                         StackName: !Sub '${ServiceName}-Stack-Prod'
                         ChangeSetName: !Sub '${ServiceName}-ChangeSet-Prod'
-                        TemplatePath: BuiltZip::cloudformation/cfn-service.yml
+                        TemplatePath: SourceZip::cloudformation/cfn-service.yml
                         Capabilities: CAPABILITY_IAM
                         #ParameterOverrides: '{ "ASGDesiredCapacity": "2" }'
                         ParameterOverrides: '{ "SpotPrice": "0.2", "ASGDesiredCapacity": "1" }'
                       InputArtifacts:
-                        - Name: BuiltZip
+                        - Name: SourceZip
                       RunOrder: 1
                     - Name: ExecuteChangeSet
                       ActionTypeId:
