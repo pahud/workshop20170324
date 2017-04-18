@@ -27,9 +27,10 @@ Mappings:
 
 Parameters:
   SshKeyName:
-    Type: String
+    #Type: String
+    Type: AWS::EC2::KeyPair::KeyName
     Description: Optional - Name of an existing EC2 KeyPair to enable SSH access to the ECS instances. Set to 'NoValue' if no SSH key is required.
-    Default: NoValue
+    Default: AWS::NoValue
   SpotPrice:
     Type: Number
     Description: spot price for spot instances
@@ -513,7 +514,7 @@ Resources:
         - !Ref CodeDeployRoleForEC2
 
   ASGLC:
-    Type: "AWS::AutoScaling::LaunchConfiuration"
+    Type: "AWS::AutoScaling::LaunchConfiguration"
     Properties:
       AssociatePublicIpAddress: true
       # BlockDeviceMappings:
