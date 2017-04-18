@@ -19,6 +19,29 @@ Parameters:
       Description: select yes if you'd like to use CodeCommit instead of Github
       Default: "no"
 
+    GitHubUser:
+      Type: String
+      Description: Your username on GitHub. Skip this if you use CodeCommit.
+      Default: AWS::NoValue
+
+    GitHubRepo:
+      Type: String
+      Default: ecs-demo-php-simple-app
+      Description: The repo name of the sample service. Skip this if you use CodeCommit.
+      Default: AWS::NoValue
+
+    GitHubBranch:
+      Type: String
+      Default: master
+      Description: The branch of the repo to continuously deploy. Skip this if you use CodeCommit.
+      Default: AWS::NoValue
+
+    GitHubToken:
+      Type: String
+      Description: >
+        Token for the user specified above. (https://github.com/settings/tokens) Skip this if you use CodeCommit.
+      Default: AWS::NoValue
+
 
 Conditions:
   WithCodeDeploy: !Equals [ !Ref WithCodeDeploy, "yes" ] 
@@ -347,7 +370,7 @@ Resources:
 #
 #  CoePipeline using Github as source                         
 #                                          
-    Pipeline:
+    PipelineWithGithub:
         Condition:  NotUseCodeCommit
         Type: AWS::CodePipeline::Pipeline
         Properties:
@@ -356,6 +379,10 @@ Resources:
                 Type: S3
             Name: !Sub ${ServiceName}_pipeline
             RoleArn: !GetAtt PipelineExecutionRole.Arn
+            # DisableInboundStageTransitions: 
+            #   - 
+            #     Reason: "init disabled"
+            #     StageName: Source
             Stages:
                 - Name: Source
                   Actions:
@@ -366,10 +393,10 @@ Resources:
                         Provider: GitHub
                         Version: 1
                       Configuration:
-                        Owner: AWS::NoValue
-                        Repo: AWS::NoValue
-                        Branch: AWS::NoValue
-                        OAuthToken: AWS::NoValue
+                        Owner: !Ref GitHubUser
+                        Repo: !Ref GitHubRepo
+                        Branch: !Ref GitHubBranch
+                        OAuthToken: !Ref GitHubToken
                         # RepositoryName: !Sub '${ServiceName}_repo'
                         # BranchName: master
                       OutputArtifacts:
@@ -595,7 +622,7 @@ Resources:
 #
 #  CoePipeline using CodeCommit as source                         
 # 
-    Pipeline:
+    PipelineWithCodeCommit:
         Condition:  UseCodeCommit
         Type: AWS::CodePipeline::Pipeline
         Properties:
