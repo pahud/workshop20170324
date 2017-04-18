@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
 Description:
-  cloudformation template for ASG, EC2 and ELB/ALB
+  IAM, VPC, ASG, EC2 and ELB/ALB
 
 Mappings:
   VpcCidrs:
@@ -513,7 +513,7 @@ Resources:
         - !Ref CodeDeployRoleForEC2
 
   ASGLC:
-    Type: "AWS::AutoScaling::LaunchConfiguration"
+    Type: "AWS::AutoScaling::LaunchConfiuration"
     Properties:
       AssociatePublicIpAddress: true
       # BlockDeviceMappings:
