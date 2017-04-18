@@ -1,12 +1,12 @@
 # devops-workshop
 
-#### ABOUT
+### ABOUT
 
 **devops-workshop** consists of a set of *cloudformation* templates as well as yaml files of *codebuild* and *codedeploy*, demostrating how to create a EC2-based CI/CD pipeline.
 
 
 
-#### HOWTO
+### HOWTO
 
 1. create the basic cloudformation stack  with **cloudformation/00-cfn-codepipeline-base.yml** or click the button to launch the stack in us-west-2
 
