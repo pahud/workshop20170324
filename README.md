@@ -8,10 +8,8 @@
 
 #### HOWTO
 
-1. create the basic cloudformation stack  with **cloudformation/00-cfn-codepipeline-base.yml** or click the button below 
+1. create the basic cloudformation stack  with **cloudformation/00-cfn-codepipeline-base.yml** or click the button to launch the stack in us-west-2
 
-
-click the button to launch the stack in us-west-2
 
 
 
